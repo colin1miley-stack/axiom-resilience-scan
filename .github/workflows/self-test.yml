@@ -1,0 +1,28 @@
+# Proves the action end to end on every change: the bundled mock workflow
+# MUST produce a COST-1 finding, and the scanner must stay hash-verified.
+name: self-test
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  scan-mock:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - id: scan
+        uses: ./
+        with:
+          path: examples
+          fail-on-findings: "true"
+        continue-on-error: true
+      - name: Expect findings on the mock (exit 1)
+        run: test "${{ steps.scan.outcome }}" = "failure"
+  scan-clean:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./
+        with:
+          path: scanner

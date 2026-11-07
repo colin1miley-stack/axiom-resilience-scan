@@ -1,0 +1,41 @@
+# Axiom Resilience Scan — deterministic revenue-leak scan for n8n workflow
+# JSON in CI. The scanner is vendored in ./scanner and verified against
+# SHA256SUMS before it runs. No network calls, no uploads: workflow content
+# never leaves the runner.
+name: "Axiom Resilience Scan"
+description: "Deterministic revenue-leak scan for n8n workflows (COST-1, SEC-5). Runs locally; no workflow data leaves your repo."
+author: "Axiom Revenue Labs"
+branding:
+  icon: "shield"
+  color: "black"
+
+inputs:
+  fail-on-findings:
+    description: "Fail the step (exit 1) when leaks are found. Set 'false' to annotate only."
+    required: false
+    default: "true"
+  path:
+    description: "Directory to scan, relative to the workspace."
+    required: false
+    default: "."
+
+runs:
+  using: "composite"
+  steps:
+    # The scanner is TypeScript run via Node type-stripping (Node >= 22.18).
+    - uses: actions/setup-node@v4
+      with:
+        node-version: "24"
+
+    - name: Verify scanner integrity
+      shell: bash
+      working-directory: ${{ github.action_path }}/scanner
+      run: sha256sum -c SHA256SUMS
+
+    - name: Run resilience scan
+      shell: bash
+      working-directory: ${{ github.action_path }}/scanner
+      env:
+        SCAN_ROOT: ${{ github.workspace }}/${{ inputs.path }}
+        FAIL_ON_FINDINGS: ${{ inputs.fail-on-findings }}
+      run: node ci-scan.mjs --root "$SCAN_ROOT" --fail-on-findings "$FAIL_ON_FINDINGS"

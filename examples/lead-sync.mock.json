@@ -1,0 +1,13 @@
+{
+  "name": "Lead sync (Live Fire mock — fabricated example, no client data)",
+  "nodes": [
+    { "id": "t1", "name": "Every 30 min", "type": "n8n-nodes-base.scheduleTrigger", "typeVersion": 1.2, "position": [0, 0], "parameters": {} },
+    { "id": "s1", "name": "Loop Over Items", "type": "n8n-nodes-base.splitInBatches", "typeVersion": 3, "position": [220, 0], "parameters": {} },
+    { "id": "h1", "name": "Create CRM contact", "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [440, 0], "parameters": { "method": "POST", "url": "https://crm.example.invalid/contacts" } }
+  ],
+  "connections": {
+    "Every 30 min": { "main": [[{ "node": "Loop Over Items", "type": "main", "index": 0 }]] },
+    "Loop Over Items": { "main": [[], [{ "node": "Create CRM contact", "type": "main", "index": 0 }]] },
+    "Create CRM contact": { "main": [[{ "node": "Loop Over Items", "type": "main", "index": 0 }]] }
+  }
+}
